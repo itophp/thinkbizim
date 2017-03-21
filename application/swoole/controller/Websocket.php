@@ -3,6 +3,7 @@ namespace app\swoole\controller;
 
 use think\Controller;
 use think\Db;
+use swoole\Stroage;
 
 /**
 * 
@@ -16,7 +17,8 @@ class Websocket extends Controller
 	protected $host = '0.0.0.0';
 	//WebSocket port
 	protected $port = 9501;
-
+	//Stroage
+	protected $stroage;
 	protected $serv;
 	protected $redis;
 	protected $users;
@@ -30,6 +32,7 @@ class Websocket extends Controller
 
 		//instantiation WebSocket server
 		$this->serv = new \swoole_websocket_server($this->host,$this->port);
+		$this->stroage = new Stroage();
 		//listening connect event
 		$this->serv->on('open',array($this,'onOpen'));
 		//listening message event
@@ -91,11 +94,8 @@ class Websocket extends Controller
 		$this->redis = new \Redis();
 		//connect redis
 		if( $this->redis->connect('127.0.0.1',6379) ){
-			//get session data
-			$sessionData = $this->redis->get('PHPREDIS_SESSION:' . $data->sessid);
-			//explode $sessionData
-			$sessData = explode( '|', $sessionData );
-			$sessData = unserialize( $sessData[1] );
+			//get sessData
+			$sessData = $this->stroage->getSessData($data->sessid);
 			//check data
 			if( $sessData['user']['token'] !== $secretTokenData->token ){
 				$ws->push( $frame->fd,json_encode( error_msg(14011,true) ),1,true );
@@ -105,17 +105,19 @@ class Websocket extends Controller
 			}
 			$userData = $sessData['user'];
 			//bind fd -- user_id
-			$this->redis->delete('online-'.$userData['id'].'-fd');
-			$this->redis->delete('online-'.$frame->fd.'-uid');
-			$this->redis->set('online-'.$userData['id'].'-fd',$frame->fd);
-			$this->redis->set('online-'.$frame->fd.'-uid',$userData['id']);
-			//save user info
-			$this->users[$userData['id']] = $userData;
-			//send
-			$sendData['cmd'] = 'newUser';
-			$sendData['from_id'] = $userData['id'];
-			$sendData['msg'] = 'Your friend:'.$this->users[$userData['id']]['nickname'].' is on the line!!';
-			$this->sendToOnlineFriend($userData['id'],$sendData);
+			$reLogin = $this->stroage->login($userData['id'],$frame->fd);
+			if( $reLogin == true ){
+				//save user info
+				$this->users[$userData['id']] = $userData;
+				//send
+				$sendData['cmd'] = 'newUser';
+				$sendData['from_id'] = $userData['id'];
+				$sendData['msg'] = 'Your friend:'.$this->users[$userData['id']]['nickname'].' is on the line!!';
+				$this->sendToOnlineFriend($userData['id'],$sendData);
+			}else{
+				$ws->push( erro_msg(14012) );
+				$ws->close($frame->fd);
+			}
 		}else{
 			$ws->push( $frame->fd,json_encode( error_msg(14002,true) ),1,true );
 		}
@@ -124,12 +126,7 @@ class Websocket extends Controller
 
 	public function onClose($ws,$fd)
 	{
-		$redis = new \Redis();
-		//connect redis
-		$redis->connect('127.0.0.1',6379);
-		$userId = $redis->get('online-'.$fd.'-uid');
-		$redis->delete('online-'.$fd.'-uid');
-		$redis->delete('online-'.$userId.'-fd');
+		$this->stroage->offline( $fd );
 		$sendData['cmd'] = 'offLine';
 		$sendData['from_id'] = $userId;
 		$sendData['msg'] = 'Your friend:'.$this->users[$userId]['nickname'].' is off the line!!';
@@ -176,28 +173,18 @@ class Websocket extends Controller
 	 */
 	public function sendToOnlineFriend($userId,$data)
 	{
-		//get all friend
-		$friendArr = Db::name('friends')->where(['user_id'=>$userId,'status'=>1])->column('friend_id');
-		
+		//get online friend
+		$online = $this->stroage->getOnlineFriend($userId);
 		//find fd or redis
-		foreach ( $friendArr as $id ) {
-			//get fd
-			$client_id = $this->redis->get('online-'.$id.'-fd');
-			if( !empty($client_id) ){
-				
-				$client_id = $client_id[0];
-				//send data
-				$jsonData = json_encode($data,true);
-				if( $this->serv->push($client_id,$jsonData,1,true) === false)
-				{
-					$this->serv->close($this->serv,$client_id);
-					echo 'send failed!!';
-				}
-				echo 'send success!!';
-			}else{
-				
-				continue;
+		foreach ( $online as $id ) {
+			//set send data
+			$jsonData = json_encode($data,true);
+			if( $this->serv->push($client_id,$jsonData,1,true) === false)
+			{
+				$this->serv->close($this->serv,$client_id);
+				echo 'send failed!!';
 			}
+			echo 'send success!!';
 		}
 	}
 

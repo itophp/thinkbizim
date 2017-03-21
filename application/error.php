@@ -28,4 +28,6 @@ return [
  	'14010'		=>	'Registration failed!!&nbsp;&nbsp;3 seconds after the jump to the register page',
 
  	'14011'		=>	'Illegal operation!!!',
+
+ 	'14012'		=>	'ThinkBizIm login failed!!!',
 ];
