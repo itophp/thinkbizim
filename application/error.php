@@ -30,4 +30,6 @@ return [
  	'14011'		=>	'Illegal operation!!!',
 
  	'14012'		=>	'ThinkBizIm login failed!!!',
+
+ 	'14013'		=>	'Sending Falied!!!',
 ];
