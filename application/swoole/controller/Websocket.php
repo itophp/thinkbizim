@@ -3,7 +3,7 @@ namespace app\swoole\controller;
 
 use think\Controller;
 use think\Db;
-use swoole\Stroage;
+use swoole\Storage;
 
 /**
 * 
@@ -17,8 +17,8 @@ class Websocket extends Controller
 	protected $host = '0.0.0.0';
 	//WebSocket port
 	protected $port = 9501;
-	//Stroage
-	protected $stroage;
+	//Storage
+	protected $storage;
 	protected $serv;
 	protected $redis;
 	protected $users;
@@ -32,7 +32,7 @@ class Websocket extends Controller
 
 		//instantiation WebSocket server
 		$this->serv = new \swoole_websocket_server($this->host,$this->port);
-		$this->stroage = new Stroage();
+		$this->storage = new Storage();
 		//listening connect event
 		$this->serv->on('open',array($this,'onOpen'));
 		//listening message event
@@ -62,7 +62,6 @@ class Websocket extends Controller
 	public function onMessage($ws,$frame)
 	{
 		$data = json_decode($frame->data);
-		echo $data->cmd;
 		//cmd
 		switch ( $data->cmd ) {
 			case 'login':
@@ -95,7 +94,7 @@ class Websocket extends Controller
 		//connect redis
 		if( $this->redis->connect('127.0.0.1',6379) ){
 			//get sessData
-			$sessData = $this->stroage->getSessData($data->sessid);
+			$sessData = $this->storage->getSessData($data->sessid);
 			//check data
 			if( $sessData['user']['token'] !== $secretTokenData->token ){
 				$ws->push( $frame->fd,json_encode( error_msg(14011,true) ),1,true );
@@ -105,7 +104,7 @@ class Websocket extends Controller
 			}
 			$userData = $sessData['user'];
 			//bind fd -- user_id
-			$reLogin = $this->stroage->login($userData['id'],$frame->fd);
+			$reLogin = $this->storage->online($userData['id'],$frame->fd);
 			if( $reLogin == true ){
 				//save user info
 				$this->users[$userData['id']] = $userData;
@@ -126,7 +125,7 @@ class Websocket extends Controller
 
 	public function onClose($ws,$fd)
 	{
-		$this->stroage->offline( $fd );
+		$userId = $this->storage->offline( $fd );
 		$sendData['cmd'] = 'offLine';
 		$sendData['from_id'] = $userId;
 		$sendData['msg'] = 'Your friend:'.$this->users[$userId]['nickname'].' is off the line!!';
@@ -141,7 +140,7 @@ class Websocket extends Controller
 	 */
 	public function onNewMessage($ws,$frame)
 	{
-		echo 'sendData';
+		
 		$receiveData = json_decode($frame->data);
 		//find toUser fd
 		$toUser = $this->redis->get('online-'.$receiveData->to.'-fd');
@@ -174,12 +173,12 @@ class Websocket extends Controller
 	public function sendToOnlineFriend($userId,$data)
 	{
 		//get online friend
-		$online = $this->stroage->getOnlineFriend($userId);
+		$online = $this->storage->getOnlineFriend($userId);
 		//find fd or redis
 		foreach ( $online as $id ) {
 			//set send data
 			$jsonData = json_encode($data,true);
-			if( $this->serv->push($client_id,$jsonData,1,true) === false)
+			if( $this->serv->push($id,$jsonData,1,true) === false)
 			{
 				$this->serv->close($this->serv,$client_id);
 				echo 'send failed!!';
