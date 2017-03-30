@@ -76,21 +76,7 @@ class Login extends Homebase
 			if($updateToken == false){
 				return $this->error( error_msg(14005) );
 			}
-			//create redis data
-			// $redis  = new \Redis();
 			
-			// if(!$redis->connect('127.0.0.1',6379)){
-			// 	$errorData = 'Redis connect failed!!!';
-			// 	return $this->error( $errorData );
-			// }
-			// $redis->delete('online-'.$user['id']);
-			// $redis->sadd('online-'.$user['id'],'nickname:'.$user['nickname']);
-			// $redis->sadd('online-'.$user['id'],'emali:'.$user['email']);
-			// $redis->sadd('online-'.$user['id'],'mobile:'.$user['mobile']);
-			// $redis->sadd('online-'.$user['id'],'avatar:'.$user['avatar']);
-			// $redis->sadd('online-'.$user['id'],'token:'.$user['token']);
-			// $redis->sadd('online-'.$user['id'],'status:'.$user['status']);
-
 			//create session
 			$encryptUser['id'] = $user['id'];
 			$encryptUser['user'] = $user['nickname'];

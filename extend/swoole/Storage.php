@@ -43,14 +43,23 @@ class Storage
 	 * @param $fd not null
 	 * @return bool
 	 */
-	public function online($uid,$fd)
+	public function online($data,$fd)
 	{
-		//redis bind userid -- fd
-		$this->redis->delete('online-'.$uid.'-fd');
-		$this->redis->delete('online-'.$fd.'-uid');
-		$this->redis->set('online-'.$uid.'-fd',$fd);
-		$this->redis->set('online-'.$fd.'-uid',$uid);
-		return true;
+		$uid = $data['id'];
+		if( $uid ){
+			//redis bind userid -- fd
+			$this->redis->delete('online-'.$uid.'-fd');
+			$this->redis->delete('online-'.$fd.'-uid');
+			
+			$this->redis->set('online-'.$uid.'-fd',$fd);
+			$this->redis->set('online-'.$fd.'-uid',$uid);
+			//clear old user data
+			$this->redis->delete('user_data_'.$uid);
+			//create new user data
+			$this->redis->set('user_data_'.$uid,$data);
+			return true;
+		}
+		return false;		
 	}
 
 	/**
@@ -66,6 +75,7 @@ class Storage
 			//redis delete user linedata
 			$this->redis->delete('online-'.$fd.'-uid');
 			$this->redis->delete('online-'.$userId.'-fd');
+			$this->redis->delete('user_data_'.$userId);
 			return $userId;
 		}else{
 			return false;
@@ -113,14 +123,12 @@ class Storage
 			$saveHistory = db('history')->insert($data);
 			if( $saveHistory == true )
 			{
-				echo 'sql';
 				return $data;
 			}else{
-				echo 'redis';
 				//if save failed , use redis save
 				$this->redis->sadd('userHistory',json_encode($data));
 				//return $data
-				return $data;
+				return '12345';
 			}
 		}elseif( $type == 2 ){
 			//touser is group

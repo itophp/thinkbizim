@@ -68,7 +68,7 @@ class Websocket extends Controller
 				$this->onLogin($frame);
 				break;
 			case 'getHistory':
-			 	$this->onGetHistory($data);
+			 	$this->onGetHistory($frame->fd,$data);
 			 	break;
 			case 'getOnline':
 				$this->onGetOnline($data);
@@ -104,11 +104,10 @@ class Websocket extends Controller
 			}
 			$userData = $sessData['user'];
 			//bind fd -- user_id
-			$reLogin = $this->storage->online($userData['id'],$frame->fd);
+			$reLogin = $this->storage->online($userData,$frame->fd);
 			if( $reLogin == true ){
 				//save user info
 				$userData['fd'] = $frame->fd;
-				$this->users[$userData['id']] = $userData;
 				//send
 				$sendData['cmd'] = 'newUser';
 				$sendData['from_id'] = $userData['id'];
@@ -130,7 +129,7 @@ class Websocket extends Controller
 		//set sendData
 		$sendData['cmd'] = 'offLine';
 		$sendData['from_id'] = $userId;
-		$sendData['msg'] = 'Your friend:'.$this->users[$userId]['nickname'].' is off the line!!';
+		$sendData['msg'] = 'Your friend:'.$this->redis->get('user_data_'.$userId.'.nickname').' is off the line!!';
 		//unset user info;
 		unset($this->users[$userId]);
 		$this->sendToOnlineFriend($userId,$sendData);
@@ -150,37 +149,51 @@ class Websocket extends Controller
 		$redis = new \Redis();
 		//connect redis
 		$redis->connect('127.0.0.1',6379);
-		$toUser = $this->users[$receiveData->to]['fd'];
-		$fromUser = $redis->get('online-'.$receiveData->from.'-uid');
-		//send msg
-		if( !empty($toUser) ){
-			//set sendData
-			$sendData['cmd'] = 'newMessage';
-			$sendData['from_id'] = $fromUser;
-			$sendData['from_name'] = $this->users[$fromUser]['nickname'];
-			$sendData['msg'] = trim($receiveData->msg);
-			$sendData['time'] = date("Y-m-d H:i:s",time());
-			$historyData = ['from_id'=>$fromUser,'to_id'=>$receiveData->to,'msg'=>$sendData['msg'],'time'=>$sendData['time']];
-			//save history;
-			$saveHistory = $this->storage->saveHistory($historyData);
-			if( !empty($saveHistory) ){
-				//send
-				if( $ws->push( $toUser,json_encode($sendData),1,true ) ){
-					echo 'sending success!!!';
+		$fromUser = $receiveData->from;
+		if( $this->redis['user_data'.$fromUser] ){
+			$toUser = $this->redis['user_data'.$receiveData->to]['fd'];
+			//send msg
+			if( !empty($toUser) ){
+				//set sendData
+				$sendData['cmd'] = 'newMessage';
+				$sendData['from_id'] = $fromUser;
+				$sendData['from_name'] = $this->redis['user_data'.$fromUser]['nickname'];
+				$sendData['msg'] = trim($receiveData->msg);
+				$sendData['time'] = date("Y-m-d H:i:s",time());
+				$historyData = ['from_id'=>$fromUser,'to_id'=>$receiveData->to,'msg'=>$sendData['msg'],'time'=>$sendData['time']];
+				//save history;
+				$saveHistory = $this->storage->saveHistory($historyData);
+				var_dump($saveHistory);
+				if( !empty($saveHistory) ){
+					//send
+					if( $ws->push( $toUser,json_encode($sendData),1,true ) ){
+						echo 'sending success!!!';
+					}else{
+						echo 'sending failed!!!';
+					}
 				}else{
-					echo 'sending failed!!!';
+					if( $ws->push( $receiveData->from,error_msg(14013),1,true ) ){
+						echo 'saveHistory failed sending success!!!';
+					}else{
+						echo 'saveHistory failed sending failed!!!';
+					}
 				}
-			}else{
-				if( $ws->push( $receiveData->from,error_msg(14013),1,true ) ){
-					echo 'saveHistory failed sending success!!!';
-				}else{
-					echo 'saveHistory failed sending failed!!!';
-				}
+				return true;
 			}
+		}
+		//user off-online
+		echo $receiveData->to.'get failed!!';
+		//save history
+		$saveData['msg'] = trim($receiveData->msg);
+		$saveData['time'] = date("Y-m-d H:i:s",time());
+		$historyData = ['from_id'=>$fromUser,'to_id'=>$receiveData->to,'msg'=>$saveData['msg'],'time'=>$saveData['time']];
+		//save history;
+		$saveHistory = $this->storage->saveHistory($historyData);
+		if( $saveHistory )
+		{
+			echo $saveData['msg'] . ' save success!!';
 		}else{
-			//user off-online
-			//save history
-			echo $receiveData->to.'get failed!!';
+			echo $saveData['msg'] . ' save failed!!';
 		}
 	}
 
@@ -210,19 +223,18 @@ class Websocket extends Controller
 	/**
 	 *
 	 */
-	public function onGetHistory($data)
+	public function onGetHistory($fd,$data)
 	{
 		//get history
 		if( $data->from ){
 			if( $data->to ){
-				$data->from = $this->redis->get('online-'.$data->from.'-uid');
 				$history = $this->storage->getHistory($data->from,$data->to,$data->type);
 				//var_dump($history);
 				//set sendData
 				$sendData['cmd'] = 'getHistory';
 				$sendData['from_id'] = $data->to;
 				$sendData['html'] = $history;
-				if( $this->serv->push( $this->users[$data->from]['fd'],json_encode($sendData),1,true) )
+				if( $this->serv->push( $fd,json_encode($sendData),1,true) )
 				{
 					echo "history send success!!!";
 				}else{
