@@ -105,7 +105,7 @@ function login_status( $userId )
 	{
 		$redis = new \Redis();
 		$redis->connect('127.0.0.1',6379);
-		$fd = $redis->get('online-'.$userId.'-fd');
+		$fd = $redis->get('bizim:online:'.$userId.':fd');
 		if( !empty($fd) )
 		{
 			return '在线';

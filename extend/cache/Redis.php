@@ -6,60 +6,72 @@ class Redis
 	//redis host default:127.0.0.1
 	protected $host = '127.0.0.1';
 	//redis port default:3306
-	protected $port = '3306';
-	//redis class
-	protected $_redis;
+	protected $port = '6379';
+	//redis server
+	public static $_redisevr;
+	//now redis
+	private static $_redis;
 
 	/**
 	 * Singleton pattern
 	 * @return instantiate redis
 	 */
-	public function __construct()
+	private function __construct()
 	{
-		$this->_redis = new \Redis();
-		$this->_redis->connect($this->host,$this->port);
+		self::$_redisevr = new \Redis();
+		self::$_redisevr->connect($this->host,$this->port);
 	}
 
+	public function __clone(){
+		trigger_error('Clone is not allow!',E_USER_ERROR);
+	}
 
 	/**
 	 * 
-	 *
 	 */
-	public function sadd($key,$value = '')
+	public static function getInstance()
 	{
-		if(is_array($key)){
-
-		}else{
-			//cheak $value
-			if(empty($value)){
-				return 'Pleace entry value!!';
-			}
+		//check self::$_redis is not 
+		if( !(self::$_redis instanceof self) )
+		{
+			self::$_redis = new Redis;
 		}
+		return self::$_redis;
 	}
 
+	/**
+	 *
+	 */
+	public function get($key)
+	{
+		$value = self::$_redisevr->get($key);
+		return $value;
+	}
 
 	/**
 	 *
 	 *
 	 */
-	public function smembers($key,$type,$limit1 = '',$limit2 = '')
+	public function set($key,$value)
 	{
-		if( !empty($limit1) ){
-			$data = $this->$_redis->smembers($key,$limit1);
-		}elseif( !empty($limit) && !empty($limit2) ){
-			$data = $this->$_redis->smembers($key,$limit1,$limit2);
-		}else{
-			$data = $this->$_redis->smembers($key);
-		}
-		$dataArr = array();
-		if( $type == 'online' ){
-			foreach ($data as $value) {
-				$dArr = explode(':', $value);
-				$dataArr[$dArr[0]] = $dArr[1];
-			}
-		}else{
-			$dataArr = $data;
-		}
-		return $dataArr;
+		self::$_redisevr->set($key,$value);
 	}
+
+	/**
+	 *
+	 */
+	public function sadd($key,$value)
+	{
+		self::$_redisevr->sadd($key,$value);
+	}
+
+	/**
+	 *
+	 */
+	public function delete($key)
+	{
+		self::$_redisevr->delete($key);
+	}
+
+
 }

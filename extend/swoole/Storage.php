@@ -2,7 +2,7 @@
 namespace swoole;
 
 use think\Db;
-use cache\Redis;
+use swoole\Swoole_redis;
 /**
  * 
  *
@@ -10,12 +10,10 @@ use cache\Redis;
 
 class Storage
 {
-	protected $redis;
 
 	public function __construct()
 	{
-		$this->redis = new \Redis();
-		$this->redis->connect('127.0.0.1',6379);
+		$this->Swredis = new Swoole_redis();
 	}
 
 	/**
@@ -25,7 +23,7 @@ class Storage
 	 */
 	public function getSessData($sessID)
 	{
-		$sessionData = $this->redis->get('PHPREDIS_SESSION:' . $sessID);
+		$sessionData = $this->Swredis->getSessData( $sessID );
 		if( !empty($sessionData) ){
 			//explode $sessionData
 			$sessData = explode( '|', $sessionData );
@@ -48,15 +46,11 @@ class Storage
 		$uid = $data['id'];
 		if( $uid ){
 			//redis bind userid -- fd
-			$this->redis->delete('online-'.$uid.'-fd');
-			$this->redis->delete('online-'.$fd.'-uid');
+			$this->Swredis->deleteOnline($uid,'fd');
+			$this->Swredis->deleteOnline($fd,'uid');
 			
-			$this->redis->set('online-'.$uid.'-fd',$fd);
-			$this->redis->set('online-'.$fd.'-uid',$uid);
-			//clear old user data
-			$this->redis->delete('user_data_'.$uid);
-			//create new user data
-			$this->redis->set('user_data_'.$uid,$data);
+			$this->Swredis->setOnline($uid,$fd,'fd');
+			$this->Swredis->setOnline($fd,$uid,'uid');
 			return true;
 		}
 		return false;		
@@ -70,12 +64,11 @@ class Storage
 	public function offline($fd)
 	{
 		//get userid of fd
-		$userId = $this->redis->get('online-'.$fd.'-uid');
+		$userId = $this->Swredis->getOnline($fd,'uid');
 		if( !empty($userId) ){
 			//redis delete user linedata
-			$this->redis->delete('online-'.$fd.'-uid');
-			$this->redis->delete('online-'.$userId.'-fd');
-			$this->redis->delete('user_data_'.$userId);
+			$this->Swredis->deleteOnline($fd,'uid');
+			$this->Swredis->deleteOnline($userId,'fd');
 			return $userId;
 		}else{
 			return false;
@@ -95,7 +88,7 @@ class Storage
 		//find fd or redis
 		foreach ( $friendArr as $id ) {
 			//get fd
-			$client_id = $this->redis->get('online-'.$id.'-fd');
+			$client_id = $this->Swredis->getOnline($id,'fd');
 			if( !empty($client_id) ){
 				$client_id = $client_id[0];
 				//send data
@@ -126,7 +119,7 @@ class Storage
 				return $data;
 			}else{
 				//if save failed , use redis save
-				$this->redis->sadd('userHistory',json_encode($data));
+				$this->Swredis->sadd('userHistory',json_encode($data));
 				//return $data
 				return '12345';
 			}
@@ -138,14 +131,18 @@ class Storage
 	}
 
 	/**
-	 *
+	 * getHistory
+	 * @param $uid user_id
+	 * @param $fid user_id
+	 * @param $type user or ground
 	 */
 	public function getHistory($uid,$fid,$type = 1)
 	{
 		//Set query condition
 		$where = 'from_id='.$uid.' and to_id='.$fid;
 		$whereOr =  'from_id='.$fid.' and to_id='.$uid;
-		$history = Db::name('history')->where($where)->whereOr($whereOr)->order('time')->limit(10)->select();
+		$history = Db::name('history')->where($where)->whereOr($whereOr)->order('time desc')->limit(10)->select();
+		asort($history);
 		$fromUserName = Db::name('user')->where('id',$uid)->value('nickname');
 		$toUserName = Db::name('user')->where('id',$fid)->value('nickname');
 		$reData = '';
@@ -167,4 +164,50 @@ class Storage
 		}
 		return $reData;
 	}
+
+	/**
+	 * getUserData
+	 * @param $user_id
+	 * @param $field
+	 * @return array or string
+	 */
+	public function getUserData($uid,$field = null)
+	{
+		$uid = intval($uid);
+		if( $uid > 0 )
+		{
+			//get redis data
+			$user = $this->Swredis->get(':user:' . $uid . ':data');
+			if( $user == '' ){
+			//get data
+				$user = db('User')->where('id',$uid)->field($field)->find();
+				if( $user == '' ){
+					$user = error_msg('14015');
+				}
+				$reData = $user;
+			}else{
+				$fieldArr = explode(',', $field);
+				$fieldCount = count($fieldArr);
+				$reData = '';
+				for( $i=1;$i<=$fieldCount;$i++ ){
+					foreach ($friendArr as $key => $value) {
+						$isExists = array_key_exists($key, $user);
+						if( $isExists ){
+							$reData[$key] = $value;
+						}
+					}
+				}
+				if( $reData == '' ){
+					$reData = error_msg('14015');
+				}
+			}
+			if( count($reData) == 1 ){
+				$reData = $reData[$field];
+			}
+			return $reData;
+		}else{
+			return error_msg('14014');
+		}
+	}
+
 }

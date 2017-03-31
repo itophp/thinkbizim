@@ -32,4 +32,8 @@ return [
  	'14012'		=>	'ThinkBizIm login failed!!!',
 
  	'14013'		=>	'Sending Falied!!!',
+
+ 	'14014'		=>	'uid is not int type!!',
+
+ 	'14015'		=>	'user data get failed!!',
 ];
