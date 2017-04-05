@@ -57,6 +57,23 @@ class Storage
 	}
 
 	/**
+	 * add online group
+	 * @param $group
+	 * @param $uid
+	 * @return bool
+	 */
+	public function addOnlineGroup($group,$uid)
+	{
+		//check group is not exist
+		if( $group == true )
+		{
+			$this->Swredis->addOnlineGroup($group,$uid);
+
+		}
+		return false;
+	}
+
+	/**
 	 * off-line
 	 * @param $fd not null
 	 * @return int or bool

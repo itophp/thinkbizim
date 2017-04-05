@@ -244,12 +244,19 @@ class Redis
     //========================= 集合类型 start =====================================
 
 	/**
-	 *
+	 * SADD
+      * @param $key
+      * @param $value 
+      * 
 	 */
 	public function sadd($key,$value)
 	{
 		self::$_redisevr->sadd($key,$value);
 	}
+
+    /**
+     * 
+     */
 
     //========================= 集合类型 end ======================================
 

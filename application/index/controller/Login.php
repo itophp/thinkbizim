@@ -77,17 +77,10 @@ class Login extends Homebase
 			if($updateToken == false){
 				return $this->error( error_msg(14005) );
 			}
-			
-			//create session
-			$encryptUser['id'] = $user['id'];
-			$encryptUser['user'] = $user['nickname'];
-			$encryptUser['token'] = $user['token'];
-			$secretToken = base_encrypt($encryptUser,'user');
 			//ini_set("session.save_handler", "redis");
 			//ini_set("session.save_path", "tcp://127.0.0.1:6379");
 			//halt(session_save_path());
 			session('user',$user);
-			session('secretToken',$secretToken);
 			$successData = 'Login success!!';
 			return $this->success($successData,'chat/index');
 		} else {

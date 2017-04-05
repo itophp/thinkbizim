@@ -6,7 +6,6 @@ use cache\Redis;
 class Swoole_redis
 {
 	protected $redis;
-	const PREFIX = 'bizim';
 
 	public function __construct()
 	{
@@ -31,7 +30,7 @@ class Swoole_redis
 	 */
 	public function set($key,$value)
 	{
-		$this->redis->get(self::PREFIX . $key,$value);
+		$this->redis->get($key,$value);
 	}
 
 	/**
@@ -41,7 +40,7 @@ class Swoole_redis
 	 */
 	public function get($key)
 	{
-		$result = $this->redis->get(self::PREFIX . $key);
+		$result = $this->redis->get($key);
 		return $result;
 	}
 
@@ -52,7 +51,7 @@ class Swoole_redis
 	 */
 	public function delete($key)
 	{
-		$this->redis->delete(self::PREFIX . $key);
+		$this->redis->delete($key);
 	}
 
 	/**
@@ -80,7 +79,7 @@ class Swoole_redis
 	 */
 	public function setOnline($key,$value,$type)
 	{
-		$this->redis->set(self::PREFIX . ':online:' . $key . ':' . $type,$value);
+		$this->redis->set('online:' . $key . ':' . $type,$value);
 	}
 
 	/**
@@ -90,7 +89,7 @@ class Swoole_redis
 	 */
 	public function getOnline($key,$type)
 	{
-		$result = $this->redis->get(self::PREFIX . ':online:' . $key . ':' . $type);
+		$result = $this->redis->get('online:' . $key . ':' . $type);
 		return $result;
 	}
 
@@ -100,7 +99,23 @@ class Swoole_redis
 	 */
 	public function deleteOnline($key,$type)
 	{
-		$this->redis->delete(self::PREFIX . ':online:' .$key. ':' . $type);
+		$this->redis->delete('online:' .$key. ':' . $type);
+	}
+
+	/**
+	 *
+	 */
+	public function addOnlineGroup($group,$uid)
+	{
+		$this->redis->lpush('online_group:' . $group,$uid);
+	}
+
+	/**
+	 *
+	 */
+	public function deleteOnlineGroup($group,$uid)
+	{
+		$this->redis->lrem('online_group:' . $group,0,$uid);
 	}
 
 	//====================================================================================================

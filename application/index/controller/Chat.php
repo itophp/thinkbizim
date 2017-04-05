@@ -4,6 +4,7 @@ namespace app\index\controller;
 use think\Controller;
 use think\Db;
 use think\Session;
+use cache\Redis;
 
 class Chat extends Controller
 {
@@ -17,6 +18,7 @@ class Chat extends Controller
 			//redirect login controller
 			$this->redirect('login/index');
 		}
+		$this->redis = Redis::getInstance();
 	}
 
 	/**
@@ -37,10 +39,10 @@ class Chat extends Controller
 		$tplUser['token'] = session('user.token');
 		$tplUser['name'] = session('user.nickname');
 		$tplUser['avatar'] = session('user.avatar');
-		$tplUser['secretToken'] = session('secretToken');
 		$this->assign('user',$tplUser);
 
 		//get All online doctor
+		$doctors = $this->redis->lrange('online_group2',0,-1);
 		$this->assign('doctors',$doctors);
 
 		return $this->fetch();
