@@ -40,6 +40,9 @@ class Chat extends Controller
 		$tplUser['secretToken'] = session('secretToken');
 		$this->assign('user',$tplUser);
 
+		//get All online doctor
+		$this->assign('doctors',$doctors);
+
 		return $this->fetch();
 	}
 }

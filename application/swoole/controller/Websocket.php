@@ -91,35 +91,30 @@ class Websocket extends Controller
 		$secretTokenData = json_decode( $secretTokenArr['data'] );
 		//get redis data
 		//connect redis
-		$this->redis = new \Redis();
-		//connect redis
-		if( $this->redis->connect('127.0.0.1',6379) ){
-			//get sessData
-			$sessData = $this->storage->getSessData($data->sessid);
-			//check data
-			if( $sessData['user']['token'] !== $secretTokenData->token || empty($sessData['user']) ){
-				$error_code = empty($sessData['user']) ? '14001' : '14011';
-				$ws->push( $frame->fd,json_encode( error_msg($error_code,true) ),1,true );
-				
-			}
-			$userData = $sessData['user'];
-			//bind fd -- user_id
-			$reLogin = $this->storage->online($userData,$frame->fd);
-			if( $reLogin == true ){
-				echo 'send:';
-				//save user info
-				$userData['fd'] = $frame->fd;
-				//send
-				$sendData['cmd'] = 'newUser';
-				$sendData['from_id'] = $userData['id'];
-				$sendData['msg'] = 'Your friend:'.$this->storage->getUserData($userData['id'],'nickname') . ' is on the line!!';
-				$this->sendToOnlineFriend($userData['id'],$sendData);
-			}else{
-				$ws->push( $frame->fd, error_msg(14012) );
-				$ws->close($frame->fd);
-			}
+		
+		//get sessData
+		$sessData = $this->storage->getSessData($data->sessid);
+		//check data
+		if( $sessData['user']['token'] !== $secretTokenData->token || empty($sessData['user']) ){
+			$error_code = empty($sessData['user']) ? '14001' : '14011';
+			$ws->push( $frame->fd,json_encode( error_msg($error_code,true) ),1,true );
+			
+		}
+		$userData = $sessData['user'];
+		//bind fd -- user_id
+		$reLogin = $this->storage->online($userData,$frame->fd);
+		if( $reLogin == true ){
+			echo 'send:';
+			//save user info
+			$userData['fd'] = $frame->fd;
+			//send
+			$sendData['cmd'] = 'newUser';
+			$sendData['from_id'] = $userData['id'];
+			$sendData['msg'] = 'Your friend:'.$this->storage->getUserData($userData['id'],'nickname') . ' is on the line!!';
+			$this->sendToOnlineFriend($userData['id'],$sendData);
 		}else{
-			$ws->push( $frame->fd,json_encode( error_msg(14002,true) ),1,true );
+			$ws->push( $frame->fd, error_msg(14012) );
+			$ws->close($frame->fd);
 		}
 	}
 
@@ -150,6 +145,7 @@ class Websocket extends Controller
 		//connect redis
 		$redis->connect('127.0.0.1',6379);
 		$fromUser = $receiveData->from;
+		//get touser's fd
 		$toUser = $this->Swredis->getOnline($receiveData->to,'fd');
 		//send msg
 		if( !empty($toUser) ){

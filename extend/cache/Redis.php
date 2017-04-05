@@ -39,6 +39,23 @@ class Redis
 		return self::$_redis;
 	}
 
+	//============================ delete start ====================================
+
+
+	/**
+	 *
+	 */
+	public function delete($key)
+	{
+		self::$_redisevr->delete($key);
+	}
+
+
+	//======================== delete end ====================================
+
+
+	//======================== string type start =========================================
+
 	/**
 	 *
 	 */
@@ -57,6 +74,17 @@ class Redis
 		self::$_redisevr->set($key,$value);
 	}
 
+	//========================= string type end =====================================
+
+
+	//========================= list type start =====================================
+
+	/**
+	 * 
+	 */
+
+	//========================= list type end  ======================================
+
 	/**
 	 *
 	 */
@@ -65,13 +93,14 @@ class Redis
 		self::$_redisevr->sadd($key,$value);
 	}
 
+
 	/**
+	 * hset
 	 *
 	 */
-	public function delete($key)
+	public function hset($key,$field,$value)
 	{
-		self::$_redisevr->delete($key);
+		self::$_redisevr->hset($key,$field,$value);
 	}
-
 
 }

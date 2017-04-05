@@ -19,9 +19,12 @@ var user = {$user|json_encode};
 <div id="body">
   <div id="left">
     <div class="box">
-      <!-- <h3 class="h3 h3_1">最近聊天(<span class="n_geshu_1"></span>)</h3>
+      <h3 class="h3 h3_1">最近聊天(<span class="n_geshu_1"></span>)</h3>
       <ul class="ul ul_1">
-      </ul> -->
+      {volist name="doctors" id="vo"}
+          <li id="user{$vo.id}" onmouseover="hover_user(this)" onclick="title_newuser('chat_user_{$vo.id}','{$vo.nickname}','{if condition="$vo.avatar == ''"}/static/images/touxiang.jpg{else}{$vo.avatar}{/if}');" class='user-list'><span class="nickname">{$vo.nickname}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="online-status{$vo.id}">{$vo.id|login_status}</span></li>
+        {/volist}
+      </ul>
       <h3 class="h3 h3_2">我的好友(<span class="n_geshu_2"></span>)</h3>
       <ul class="ul ul_2">
         {volist name="friends" id="vo"}
