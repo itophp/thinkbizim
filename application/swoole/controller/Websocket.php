@@ -74,6 +74,8 @@ class Websocket extends Controller
 			case 'getOnline':
 				$this->onGetOnline($data);
 				break;
+            case 'getOpenInfo':
+                $this->onGetOpenInfo($frame->fd,$data);
 			case 'message':
 				echo 'message'."\n";
 				$this->onNewMessage($ws,$frame);
@@ -81,6 +83,11 @@ class Websocket extends Controller
 		}
 	}
 
+    /**
+     * @param $ws
+     * @param $frame
+     * 用户登录操作，创建基本登录信息，绑定用户ID和fd
+     */
 	public function onLogin($ws,$frame)
 	{
 		echo $frame->fd.' :login'."\n";
@@ -119,6 +126,11 @@ class Websocket extends Controller
 	}
 
 
+    /**
+     * @param $ws
+     * @param $fd
+     * 用户关闭socket连接操作，删除用户绑定信息
+     */
 	public function onClose($ws,$fd)
 	{
 		$userId = $this->storage->offline( $fd );
@@ -132,10 +144,12 @@ class Websocket extends Controller
 
 	}
 
-	/**
-	 * 
-	 *
-	 */
+    /**
+     * @param $ws
+     * @param $frame
+     * @return bool
+     * 获取到最新消息时的操作，将消息发送给用户
+     */
 	public function onNewMessage($ws,$frame)
 	{
 		
@@ -192,11 +206,12 @@ class Websocket extends Controller
 	}
 
 
-
-	/**
-	 * send json data to friend
-	 */
-	public function sendToOnlineFriend($userId,$data)
+    /**
+     * @param $userId
+     * @param $data
+     * 发送到在线的用户
+     */
+	protected function sendToOnlineFriend($userId,$data)
 	{
 		//get online friend
 		$online = $this->storage->getOnlineFriend($userId);
@@ -213,10 +228,11 @@ class Websocket extends Controller
 		}
 	}
 
-
-	/**
-	 *
-	 */
+    /**
+     * @param $fd
+     * @param $data
+     * 获取到最新的历史记录返回给用户
+     */
 	public function onGetHistory($fd,$data)
 	{
 		//get history
@@ -241,4 +257,16 @@ class Websocket extends Controller
 			echo 'from_id is null!!!';
 		}
 	}
+
+    /**
+     * @param $frame
+     * @param $data
+     * 获取用户信息返回给
+     */
+	public function onGetOpenInfo($frame,$data)
+    {
+        //通过
+        var_dump(action('user/openinfo'));
+
+    }
 }

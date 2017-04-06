@@ -33,7 +33,7 @@ var user = {$user|json_encode};
       <h3 class="h3 h3_2">我的好友(<span class="n_geshu_2"></span>)</h3>
       <ul class="ul ul_2">
         {volist name="friends" id="vo"}
-          <li id="user{$vo.id}" onmouseover="hover_user(this)" onclick="userInfo({$vo.id},'{$vo.nickname}');" class='user-list'><span class="nickname">{$vo.nickname}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="online-status{$vo.id}">{$vo.id|login_status}</span></li>
+          <li id="user{$vo.id}" onmouseover="hover_user(this)" onclick="getOpenInfo({$vo.id},'{$vo.nickname}');" class='user-list'><span class="nickname">{$vo.nickname}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="online-status{$vo.id}">{$vo.id|login_status}</span></li>
         {/volist}
         <!-- title_newuser('chat_user_{$vo.id}','{$vo.nickname}','{if condition="$vo.avatar == ''"}/static/images/touxiang.jpg{else}{$vo.avatar}{/if}'); -->
       </ul>
@@ -71,23 +71,5 @@ var user = {$user|json_encode};
 </body>
 <script type="text/javascript">
   $("#right_foot").html('<p><img src="/static/images/touxiang.jpg" alt="头象" /></p>'+user.name);
-  function userInfo(user_id,title_c){
-    var user = user_id;
-    $.post('{:url('user/openinfo')}',{
-          'id':user,
-        },function(data){
-          layer.ready(function(){ 
-            layer.open({
-              type: 1,
-              title: title_c,
-              shadeClose: true,
-              //shade: false,
-              maxmin: true, //开启最大化最小化按钮
-              area: ['700px', '400px'],
-              content: data,
-            });
-          });
-        });
-  }
 </script>
 </html>

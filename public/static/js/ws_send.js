@@ -87,3 +87,32 @@
     }
 
  }
+
+
+ /**
+  * 获取用户基本信息
+  */
+ function getOpenInfo(id,name)
+ {
+     var msg = {};
+     //定义命令
+     msg.cmd = 'getOpenInfo';
+     //定义获取用户ID
+     msg.to = id;
+     //发送
+     if( ws.send(JSON.stringify(msg)) == false){
+         return false;
+     }else{
+         layer.ready(function(){
+             layer.open({
+                 type: 1,
+                 title: name,
+                 shadeClose: true,
+                 //shade: false,
+                 maxmin: true, //开启最大化最小化按钮
+                 area: ['700px', '400px'],
+                 content: '<div id="openinfo_"'+id+'>正在获取用户信息...</div>',
+             });
+         });
+     }
+ }
