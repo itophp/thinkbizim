@@ -1,9 +1,10 @@
-<!DOCTYPE html>
-<html lang="cn">
-<head>
-	<title>{$openUser.name}</title>
-</head>
-<body>
-
-</body>
-</html>
+<div style="margin:20px;">
+	<div style="margin:20px;">User-avatar:&nbsp;&nbsp;&nbsp;<img width="50" src="{$openUser.avatar}"></div>
+	<div style="margin:20px;">User-name:&nbsp;&nbsp;&nbsp;{$openUser.name}</div>
+	<div style="margin:20px;">User-signature:&nbsp;&nbsp;&nbsp;{$openUser.signature}</div>
+	<div style="margin:20px;">User-resume:&nbsp;&nbsp;&nbsp;{$openUser.resume}</div>
+	<div style="margin:20px;">User-brithday:&nbsp;&nbsp;&nbsp;{$openUser.brithday}</div>
+	<div style="margin:20px;">User-sex:&nbsp;&nbsp;&nbsp;{$openUser.sex|getSexLang}</div>
+	<button style="margin-left:20px;" class="layui-btn layui-btn-normal layui-btn-radius">添加好友</button>
+	<button style="margin-left:20px;" onclick="title_newuser('chat_user_{$openUser.id}','{$openUser.name}','{if condition="$openUser.avatar == ''"}/static/images/touxiang.jpg{else}{$openUser.avatar}{/if}');" class="layui-btn layui-btn-radius">发送消息</button>
+</div>

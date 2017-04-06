@@ -7,14 +7,12 @@ use think\Request;
 class Homebase extends Controller
 {
 
-	public function __initialize()
+	public function _initialize()
 	{
 
 		//Check domain name is correct
 		$domain = Request::instance()->domain();
-		if($domain == 'http://im.swoole.com'){
-			return ;
-		}else{
+		if($domain !== 'http://im.swoole.com'){
 			return $this->error('Illegal operation');
 		}
 		//check end
