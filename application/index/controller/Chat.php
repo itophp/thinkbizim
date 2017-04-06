@@ -40,7 +40,6 @@ class Chat extends Controller
 		$tplUser['name'] = session('user.nickname');
 		$tplUser['avatar'] = session('user.avatar');
 		$this->assign('user',$tplUser);
-
 		//get All online doctor
 		$doctors = $this->redis->lrange('online_group2',0,-1);
 		$this->assign('doctors',$doctors);
