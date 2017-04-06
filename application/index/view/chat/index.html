@@ -6,10 +6,11 @@
 <script type="text/javascript">
 var user = {$user|json_encode};
 </script>
-<script type="text/javascript" src="/static/js/jquery-1.4.2.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery/1.12.3/jquery.min.js"></script>
 <script type="text/javascript" src="/static/js/dandan.js"></script>
 <script type="text/javascript" src="/static/js/swoole_config.js"></script>
 <script type="text/javascript" src="/static/js/chat.js"></script>
+<script type="text/javascript" src="/static/layer/layer.js"></script>
 <link href="/static/images/dandan.css" rel="stylesheet" media="screen" type="text/css" />
 </head>
 <body>
@@ -28,8 +29,9 @@ var user = {$user|json_encode};
       <h3 class="h3 h3_2">我的好友(<span class="n_geshu_2"></span>)</h3>
       <ul class="ul ul_2">
         {volist name="friends" id="vo"}
-          <li id="user{$vo.id}" onmouseover="hover_user(this)" onclick="title_newuser('chat_user_{$vo.id}','{$vo.nickname}','{if condition="$vo.avatar == ''"}/static/images/touxiang.jpg{else}{$vo.avatar}{/if}');" class='user-list'><span class="nickname">{$vo.nickname}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="online-status{$vo.id}">{$vo.id|login_status}</span></li>
+          <li id="user{$vo.id}" onmouseover="hover_user(this)" onclick="userInfo({$vo.id})" class='user-list'><span class="nickname">{$vo.nickname}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="online-status{$vo.id}">{$vo.id|login_status}</span></li>
         {/volist}
+        <!-- title_newuser('chat_user_{$vo.id}','{$vo.nickname}','{if condition="$vo.avatar == ''"}/static/images/touxiang.jpg{else}{$vo.avatar}{/if}'); -->
       </ul>
     </div>
     <div class="box_f"></div>
@@ -65,5 +67,20 @@ var user = {$user|json_encode};
 </body>
 <script type="text/javascript">
   $("#right_foot").html('<p><img src="/static/images/touxiang.jpg" alt="头象" /></p>'+user.name);
+  function userInfo(user_id){
+    var user = user_id;
+    layer.ready(function(){ 
+      layer.open({
+        type: 2,
+        title: '欢迎页',
+        maxmin: true,
+        area: ['800px', '500px'],
+        content: '{:url('user/openinfo',['id','+user+'])}',
+        end: function(){
+          layer.tips('Hi', '#about', {tips: 1})
+        }
+      });
+    });
+  }
 </script>
 </html>
