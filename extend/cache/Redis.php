@@ -1,6 +1,12 @@
 <?php
 namespace cache;
 
+/**
+ * Class Redis
+ * @package cache
+ * Redis 操作类库，适用于刚接触Redis，对Redis中的操作方法不大熟练的phper
+ * 分配好了各种类型的操作方法，可以在当前的基础上对方法参数进行操作
+ */
 class Redis
 {
 	//redis host default:127.0.0.1
@@ -53,7 +59,7 @@ class Redis
 	 */
 	public function delete($key)
 	{
-		self::$_redisevr->delete($key);
+        return self::$_redisevr->delete($key);
 	}
 
 
@@ -69,8 +75,7 @@ class Redis
 	 */
 	public function get($key)
 	{
-		$value = self::$_redisevr->get($key);
-		return $value;
+        return self::$_redisevr->get($key);
 	}
 
 	/**
@@ -81,8 +86,50 @@ class Redis
 	 */
 	public function set($key,$value)
 	{
-		self::$_redisevr->set($key,$value);
+        return self::$_redisevr->set($key,$value);
 	}
+
+    /**
+     * INCR
+     * @param $key
+     * 自增数字,每次加1
+     */
+    public function incr($key)
+    {
+        return self::$_redisevr->incr($key);
+    }
+
+    /**
+     * INCRBY
+     * @param $key
+     * @param $increment 一次增加的次数
+     * INCRBY 命令与INCR命令基本一样，只不过前者可以通过 increment 参数知道一次增加的次数
+     */
+    public function inceBy($key,$increment)
+    {
+        return self::$_redisevr->incrBy($key,$increment);
+    }
+
+    /**
+     * DECR
+     * @param $key
+     * $key 递减，一次为1
+     */
+    public function decr($key)
+    {
+        return self::$_redisevr->decr($key);
+    }
+
+    /**
+     * DECRBY
+     * @param $key
+     * @param $increment
+     * 递减 $key 中 $increment 的数量
+     */
+    public function decrBy($key,$increment)
+    {
+        return self::$_redisevr->decrBy($key,$increment);
+    }
 
 	//========================= 字符串类型 end =====================================
 
@@ -96,9 +143,9 @@ class Redis
      * @param $value string or array 键值
      * 向列表左边添加元素，返回值标识增加元素后的列表长度
 	 */
-    public function lpush($key,$value)
+    public function lPush($key,$value)
     {
-        self::$_redisevr->lpush($key,$value);
+        return self::$_redisevr->lPush($key,$value);
     }
 
     /**
@@ -107,9 +154,9 @@ class Redis
      * @param $value string or array 键值
      * 向列表右边添加元素
      */
-    public function rpush($key,$value)
+    public function rPush($key,$value)
     {
-        self::$_redisevr->rpush($key,$value);
+        return self::$_redisevr->rPush($key,$value);
     }
 
     /**
@@ -117,9 +164,9 @@ class Redis
      * @param $key
      * 从列表左边弹出元素
      */
-    public function lpop($key)
+    public function lPop($key)
     {
-        self::$_redisevr->lpop($key);
+        return self::$_redisevr->lPop($key);
     }
 
     /**
@@ -127,9 +174,9 @@ class Redis
      * @param $key
      * 从列表右边弹出元素
      */
-    public function rpop($key)
+    public function rPop($key)
     {
-        self::$_redisevr->rpop($key);
+        return self::$_redisevr->rPop($key);
     }
 
     /**
@@ -137,9 +184,9 @@ class Redis
      * @param $key 
      * 获取列表中元素的个数
      */
-    public function llen($key)
+    public function lLen($key)
     {
-        self::$_redis->llen($key);
+        return self::$_redis->lLen($key);
     }
 
     /**
@@ -149,9 +196,9 @@ class Redis
      * @param $end 结束获取的位置
      * 获取列表中某一片段。将返回索引从 $start 到 $end 之间的所有元素，包含两端的元素,负数表示右边开始第几个元素
      */
-    public function lrange($key,$start,$end)
+    public function lRange($key,$start,$end)
     {
-        self::$_redisevr->lrange($key,$start,$end);
+        return self::$_redisevr->lRange($key,$start,$end);
     }
 
     /**
@@ -161,9 +208,9 @@ class Redis
      * @param $value 删除哪个值
      * LREM会删除列表中前 $count 个值为 $value 的元素
      */
-    public function lrem($key,$count,$value)
+    public function lRem($key,$count,$value)
     {
-        self::$_redisevr->lrem($key,$count,$value);
+        return self::$_redisevr->lRem($key,$count,$value);
     }
 
     /**
@@ -173,9 +220,9 @@ class Redis
      * 获得指定索引的元素值
      * 如果要讲列表类型当成数组来用，LINDEX命令是必不可少的，LINDEX命令用于返回指定索引的元素
      */
-    public function lindex($key,$index)
+    public function lIndex($key,$index)
     {
-        self::$_redisevr->lindex($key,$index);
+        return self::$_redisevr->lIndex($key,$index);
     }
 
     /**
@@ -185,9 +232,9 @@ class Redis
      * @param $value 值
      * 设置指定索引的元素值
      */
-    public function lset($key,$index,$value)
+    public function lSet($key,$index,$value)
     {
-        self::$_redisevr->lset($key,$index,$value);
+        return self::$_redisevr->lSet($key,$index,$value);
     }
 
 
@@ -198,9 +245,9 @@ class Redis
      * @param $end 结束保留的位置
      * 删除指定索引之外的元素，方法和LRANGE相同
      */
-    public function ltrim($key,$start,$end)
+    public function lTrim($key,$start,$end)
     {
-        self::$_redisevr->ltrim($key,$start,$end);
+        return self::$_redisevr->lTrim($key,$start,$end);
     }
 
 
@@ -212,9 +259,9 @@ class Redis
      * @param $value 插入的值
      * LINSERT会首先查找 $pivot 元素的位置，在根据 $position 确定在 $pivot 之前还是之后插入 $value
      */
-    public function linsert($key,$position,$pivot,$value)
+    public function lInsert($key,$position,$pivot,$value)
     {
-        self::$_redisevr->linsert($key,$position,$pivot,$value);
+        return self::$_redisevr->lInsert($key,$position,$pivot,$value);
     }
 
 
@@ -233,7 +280,7 @@ class Redis
      */
     public function rpoplpush($source,$destination)
     {
-        self::$_redisevr->rpoplpush($source,$destination);
+        return self::$_redisevr->rpoplpush($source,$destination);
     }
     
 
@@ -245,17 +292,51 @@ class Redis
 
 	/**
 	 * SADD
-      * @param $key
-      * @param $value 
-      * 
+     * @param $key
+     * @param $value
+     * 增加集合中的元素
 	 */
-	public function sadd($key,$value)
+	public function sAdd($key,$value)
 	{
-		self::$_redisevr->sadd($key,$value);
+        return self::$_redisevr->sAdd($key,$value);
 	}
 
     /**
-     * 
+     * SREM
+     * @param $key
+     * @param $value
+     * 删除集合中的元素
+     */
+    public function sRem($key,$value)
+    {
+        return self::$_redisevr->sRem($key,$value);
+    }
+
+    /**
+     * SMEMBERS
+     * @param $key
+     * 返回 $key 中所有元素
+     * @return array
+     */
+    public function sMembers($key)
+    {
+        return self::$_redisevr->sMembers($key);
+    }
+
+    /**
+     * SISMEMBERS
+     * @param $key 键名
+     * @param $member 键值
+     * 查询 $key 中是否存在 $member
+     * @return bool
+     */
+    public function sIsMember($key,$member)
+    {
+        return self::$_redisevr->sIsMember($key,$member);
+    }
+
+    /**
+     *
      */
 
     //========================= 集合类型 end ======================================
@@ -265,9 +346,9 @@ class Redis
 	 * hset
 	 *
 	 */
-	public function hset($key,$field,$value)
+	public function hSet($key,$field,$value)
 	{
-		self::$_redisevr->hset($key,$field,$value);
+        return self::$_redisevr->hSet($key,$field,$value);
 	}
 
 }
