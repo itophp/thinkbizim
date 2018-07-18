@@ -1,6 +1,6 @@
 # 添加商品进购物车
 
-{% api-method method="post" host="https://api.cakes.com" path="/shop/cart/addCart" %}
+{% api-method method="post" host="https://api.cakes.com" path="/shop/cart/ajaxAddCart" %}
 {% api-method-summary %}
 添加商品进购物车
 {% endapi-method-summary %}
